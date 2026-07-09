@@ -1,0 +1,72 @@
+
+class MeansEndAnalysis:
+    def __init__(self, operators):
+        self.operators = operators
+
+    def solve(self, current, goal):
+        print(f"Current State: {current} | Goal State: {goal}")
+
+        if current == goal:
+            return []
+
+        diff = self.find_difference(current, goal)
+        if not diff:
+            return []
+
+        op = self.select_operator(diff)
+        if not op:
+            print(f"No operator found to resolve difference: {diff}")
+            return None
+
+        preconditions_path = self.solve(current, op["precond"])
+        if preconditions_path is None:
+            return None
+
+        new_state = op["effect"]
+
+        remaining_path = self.solve(new_state, goal)
+        if remaining_path is None:
+            return None
+
+        return preconditions_path + [op["name"]] + remaining_path
+
+    def find_difference(self, current, goal):
+        for key in goal:
+            if current.get(key) != goal[key]:
+                return (key, goal[key])
+
+        return None
+
+    def select_operator(self, diff):
+        key, val = diff
+
+        for op in self.operators:
+            if op["effect"].get(key) == val:
+                return op
+
+        return None
+
+
+# ---------------- Main Program ----------------
+
+operators = [
+    {
+        "name": "Go to Shop",
+        "precond": {"at": "home"},
+        "effect": {"at": "shop"}
+    },
+    {
+        "name": "Buy Milk",
+        "precond": {"at": "shop"},
+        "effect": {"have": "milk"}
+    }
+]
+
+mea = MeansEndAnalysis(operators)
+
+current = {"at": "home"}
+goal = {"have": "milk"}
+
+result = mea.solve(current, goal)
+
+print("Solution:", result)
